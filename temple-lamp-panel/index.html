@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>慈云禅寺 · 供灯管理面板</title>
+<style>
+:root{
+  --red:#7c2121; --gold:#c9a227; --gold2:#e8cf8a;
+  --cream:#f5efe1; --paper:#fffdf6; --ink:#38301f; --muted:#8d8168; --line:#e6dcc3;
+  --green:#2f9e5f; --green-bg:#e8f6ee; --green-bd:#bfe6cf;
+  --amber:#c98a00; --amber-bg:#fdf3d7; --amber-bd:#f0d998;
+  --danger:#cf4444; --danger-bg:#fbe9e7; --danger-bd:#f0bdb8;
+  --empty-bd:#cfc4a8;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:var(--cream);color:var(--ink);font-size:14px;line-height:1.5}
+
+/* ---------- 顶栏 ---------- */
+header.top{background:linear-gradient(135deg,#6d1d1d,#8f2b23 60%,#6d1d1d);color:#f3e6c2;box-shadow:0 2px 10px rgba(0,0,0,.18)}
+.top-in{max-width:1240px;margin:0 auto;display:flex;align-items:center;gap:12px;height:64px;padding:0 20px}
+.logo{font-size:26px}
+.top h1{font-family:"Songti SC","STSong","SimSun",serif;font-size:21px;letter-spacing:3px}
+.top-right{margin-left:auto;display:flex;align-items:center;gap:12px;font-size:13px;color:#e8d9b4}
+.btn-reset{background:rgba(255,255,255,.12);border:1px solid rgba(240,220,170,.4);color:#f0dcae;border-radius:6px;padding:5px 12px;cursor:pointer;font-size:12px}
+.btn-reset:hover{background:rgba(255,255,255,.22)}
+
+/* ---------- 页签 ---------- */
+nav.tabs{max-width:1240px;margin:18px auto 0;padding:0 20px;display:flex;gap:8px}
+.tab{padding:9px 24px;border-radius:10px 10px 0 0;background:#e9e0c9;color:#6d6046;cursor:pointer;font-size:15px;border:1px solid var(--line);border-bottom:none;letter-spacing:2px}
+.tab.active{background:var(--paper);color:var(--red);font-weight:700}
+main{max-width:1240px;margin:0 auto;padding:0 20px 40px}
+.page{display:none;background:var(--paper);border:1px solid var(--line);border-radius:0 12px 12px 12px;padding:22px;min-height:62vh}
+.page.active{display:block}
+.tip-note{margin-top:12px;font-size:12px;color:var(--muted)}
+
+/* ---------- 殿堂卡片 ---------- */
+.hall-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin-bottom:16px}
+.hall-card{border:1.5px solid var(--line);border-radius:12px;padding:13px 16px;cursor:pointer;background:#fbf7ec;transition:.15s}
+.hall-card:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(90,70,30,.12)}
+.hall-card.active{border-color:var(--gold);background:#fff8e4;box-shadow:0 4px 14px rgba(160,120,20,.18)}
+.hall-card h3{font-size:16px;font-family:"Songti SC","STSong","SimSun",serif;letter-spacing:3px;display:flex;align-items:baseline;gap:8px}
+.hall-card h3 small{font-size:11px;color:var(--muted);font-family:sans-serif;letter-spacing:0}
+.hc-counts{display:flex;gap:12px;margin-top:8px;font-size:12px;color:var(--muted)}
+.hc-counts b{font-size:15px;margin-left:2px}
+
+/* ---------- 图例 ---------- */
+.legend{display:flex;flex-wrap:wrap;gap:18px;align-items:center;margin:2px 0 14px;font-size:13px;color:var(--muted)}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+
+/* ---------- 灯架 ---------- */
+.rack-wrap{overflow-x:auto;padding:16px;background:repeating-linear-gradient(45deg,#faf5e8,#faf5e8 12px,#f7f1de 12px,#f7f1de 24px);border:1px solid var(--line);border-radius:12px}
+.rack{display:grid;gap:8px;width:max-content;margin:0 auto}
+.rl{display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px}
+.lamp{border-radius:9px;padding:7px 8px 6px;cursor:pointer;border:1.5px solid;width:104px;min-height:84px;display:flex;flex-direction:column;transition:.12s;position:relative}
+.lamp:hover{transform:scale(1.06);box-shadow:0 4px 10px rgba(80,60,20,.2);z-index:2}
+.st-lit{background:var(--green-bg);border-color:var(--green-bd)}
+.st-warn{background:var(--amber-bg);border-color:var(--amber-bd)}
+.st-out{background:var(--danger-bg);border-color:var(--danger-bd)}
+.st-empty{background:#f4efe0;border:1.5px dashed var(--empty-bd);align-items:center;justify-content:center;color:#a89a7c}
+.lamp-top{display:flex;align-items:center;gap:4px;font-size:11px;color:#6d6046}
+.lamp-ico{font-size:14px}
+.sdot{margin-left:auto;width:8px;height:8px;border-radius:50%;flex:none}
+.st-lit .sdot{background:var(--green);box-shadow:0 0 6px var(--green)}
+.st-warn .sdot{background:var(--amber)}
+.st-out .sdot{background:var(--danger)}
+.lamp-name{font-weight:700;font-size:13px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lamp-date{font-size:10.5px;color:var(--muted);margin-top:auto}
+.lamp-plus{font-size:20px;line-height:1}
+.lamp-empty-txt{font-size:11px;margin-top:2px}
+
+/* ---------- 弹窗 ---------- */
+.mask{position:fixed;inset:0;background:rgba(40,25,10,.45);backdrop-filter:blur(2px);display:none;align-items:center;justify-content:center;z-index:50;padding:16px}
+.mask.show{display:flex}
+.modal{background:var(--paper);border-radius:14px;width:620px;max-width:100%;max-height:88vh;overflow-y:auto;box-shadow:0 18px 50px rgba(0,0,0,.3);border-top:5px solid var(--gold)}
+.m-head{padding:15px 20px 12px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.m-head h2{font-size:17px;font-family:"Songti SC","STSong","SimSun",serif;letter-spacing:1px}
+.m-head .pos{font-size:12px;color:var(--muted)}
+.m-close{margin-left:auto;border:none;background:#f0e8d2;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:14px;color:#7a6c4e}
+.m-close:hover{background:#e4d8b8}
+.m-body{padding:14px 20px 20px}
+.sec-title{font-size:13px;font-weight:700;color:var(--red);margin:16px 0 8px;padding-left:8px;border-left:3px solid var(--gold)}
+.sec-title:first-child{margin-top:0}
+.kv{display:grid;grid-template-columns:88px 1fr;row-gap:6px;font-size:13.5px}
+.kv .k{color:var(--muted)}
+.badge{font-size:12px;padding:2px 10px;border-radius:20px;font-weight:700}
+.bdg-lit{background:var(--green-bg);color:var(--green);border:1px solid var(--green-bd)}
+.bdg-warn{background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-bd)}
+.bdg-out{background:var(--danger-bg);color:var(--danger);border:1px solid var(--danger-bd)}
+
+/* ---------- 表格 ---------- */
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{background:#f3ecd8;color:#6d6046;font-weight:600;padding:7px 10px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+.tbl td{padding:7px 10px;border-bottom:1px solid #f0e9d6;white-space:nowrap}
+.tbl-wrap{max-height:250px;overflow-y:auto;border:1px solid var(--line);border-radius:10px}
+.empty-row{color:var(--muted);text-align:center;padding:14px 0}
+
+/* ---------- 表单 ---------- */
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;align-items:end}
+.field label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
+.field input,.field select,.field textarea{width:100%;padding:7px 9px;border:1px solid #d8cba6;border-radius:7px;background:#fffdf8;font-size:13.5px;font-family:inherit;color:var(--ink)}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,162,39,.15)}
+.btn{background:linear-gradient(135deg,#b8901f,#d4af37);color:#fff;border:none;border-radius:8px;padding:8px 22px;font-size:14px;cursor:pointer;letter-spacing:2px}
+.btn:hover{filter:brightness(1.07)}
+.btn-block{width:100%;margin-top:12px}
+
+/* ---------- 统计卡片 ---------- */
+.stat-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:18px}
+.stat-card{background:linear-gradient(160deg,#fffdf6,#faf3df);border:1px solid var(--line);border-radius:12px;padding:13px 16px}
+.stat-card .num{font-size:26px;font-weight:800;color:var(--red)}
+.stat-card .num small{font-size:13px;font-weight:400;color:var(--muted);margin-left:3px}
+.stat-card .lbl{font-size:12px;color:var(--muted);margin-top:2px}
+
+/* ---------- 作坊 ---------- */
+.ws-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media(max-width:920px){.ws-grid{grid-template-columns:1fr}}
+.panel{border:1px solid var(--line);border-radius:12px;padding:16px;background:#fffdf8}
+.panel h3{font-size:15px;margin-bottom:12px;font-family:"Songti SC","STSong","SimSun",serif;letter-spacing:2px;color:var(--red)}
+.panel h3.mt{margin-top:18px}
+.oil-tip{font-size:12px;color:var(--muted);margin-top:8px}
+.oil-tip b{color:var(--amber)}
+
+/* ---------- 图表 ---------- */
+.chart-wrap{position:relative;border:1px solid var(--line);border-radius:12px;padding:16px;background:#fffdf8}
+#chart{width:100%;height:auto;display:block}
+.chart-tip{position:absolute;pointer-events:none;background:rgba(50,35,15,.93);color:#f5ead0;font-size:12px;padding:8px 11px;border-radius:8px;display:none;white-space:nowrap;z-index:5;box-shadow:0 4px 12px rgba(0,0,0,.25);line-height:1.7}
+.chart-legend{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:10px;font-size:13px}
+.cl-item{display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none;padding:3px 8px;border-radius:6px;color:var(--ink)}
+.cl-item:hover{background:#f3ecd8}
+.cl-item.off{opacity:.35}
+.cl-line{width:18px;height:3px;border-radius:2px}
+
+/* ---------- Toast ---------- */
+.toast{position:fixed;left:50%;bottom:34px;transform:translateX(-50%) translateY(20px);background:#3a3226;color:#f5ead0;padding:10px 24px;border-radius:24px;font-size:14px;opacity:0;transition:.25s;z-index:99;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.err{background:#a03a3a}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-in">
+    <span class="logo">🪔</span>
+    <h1>慈云禅寺 · 供灯管理面板</h1>
+    <div class="top-right">
+      <span id="todayStr"></span>
+      <button class="btn-reset" id="btnReset">重置演示数据</button>
+    </div>
+  </div>
+</header>
+
+<nav class="tabs">
+  <div class="tab active" data-page="layout">供灯布局</div>
+  <div class="tab" data-page="workshop">灯油作坊</div>
+  <div class="tab" data-page="stats">消耗统计</div>
+</nav>
+
+<main>
+  <!-- ========== 供灯布局 ========== -->
+  <section class="page active" id="page-layout">
+    <div class="hall-cards" id="hallCards"></div>
+    <div class="legend">
+      <span><i class="dot" style="background:var(--green)"></i>常亮</span>
+      <span><i class="dot" style="background:var(--amber)"></i>即将燃尽（距结束 &lt; 3 天）</span>
+      <span><i class="dot" style="background:var(--danger)"></i>已灭</span>
+      <span><i class="dot" style="background:#d8cfae"></i>空位（可登记新供灯）</span>
+    </div>
+    <div class="rack-wrap"><div class="rack" id="rack"></div></div>
+    <p class="tip-note">点击灯位查看供奉人信息与续费记录；点击空位可登记新供灯。</p>
+  </section>
+
+  <!-- ========== 灯油作坊 ========== -->
+  <section class="page" id="page-workshop">
+    <div class="stat-cards" id="wsCards"></div>
+    <div class="ws-grid">
+      <div class="panel">
+        <h3>灯油领用登记</h3>
+        <form id="oilForm" class="form-grid">
+          <div class="field"><label>领用数量（kg）</label><input type="number" id="oilAmount" min="0.5" step="0.5" value="30" required></div>
+          <div class="field"><label>领用人</label><input type="text" id="oilPerson" value="释慧明" required></div>
+          <div class="field"><label>用途备注</label>
+            <select id="oilNote"><option>寺库领入</option><option>外购补充</option><option>信众供养</option></select>
+          </div>
+          <div class="field"><button class="btn" type="submit">登记领用</button></div>
+        </form>
+        <h3 class="mt">领用记录</h3>
+        <div class="tbl-wrap"><table class="tbl">
+          <thead><tr><th>日期</th><th>数量(kg)</th><th>领用人</th><th>备注</th></tr></thead>
+          <tbody id="oilTbody"></tbody>
+        </table></div>
+      </div>
+      <div class="panel">
+        <h3>酥油灯制作登记</h3>
+        <form id="prodForm" class="form-grid">
+          <div class="field"><label>规格</label>
+            <select id="prodSpec">
+              <option value="small">小杯（耗油 0.05 kg/盏）</option>
+              <option value="medium">中杯（耗油 0.12 kg/盏）</option>
+              <option value="large">大杯（耗油 0.25 kg/盏）</option>
+            </select>
+          </div>
+          <div class="field"><label>制作数量（盏）</label><input type="number" id="prodQty" min="1" step="1" value="100" required></div>
+          <div class="field"><label>制作人</label><input type="text" id="prodPerson" value="释慧明" required></div>
+          <div class="field"><button class="btn" type="submit">登记制作</button></div>
+        </form>
+        <div class="oil-tip" id="oilNeedTip"></div>
+        <h3 class="mt">制作记录</h3>
+        <div class="tbl-wrap"><table class="tbl">
+          <thead><tr><th>日期</th><th>规格</th><th>数量(盏)</th><th>耗油(kg)</th><th>制作人</th></tr></thead>
+          <tbody id="prodTbody"></tbody>
+        </table></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== 消耗统计 ========== -->
+  <section class="page" id="page-stats">
+    <div class="stat-cards" id="statCards"></div>
+    <div class="chart-wrap">
+      <div class="chart-legend" id="chartLegend"></div>
+      <svg id="chart" viewBox="0 0 880 380"></svg>
+      <div class="chart-tip" id="chartTip"></div>
+    </div>
+    <p class="tip-note">统计口径：每日各殿堂燃尽圆满、撤换下的供灯盏数（近 14 天）。点击图例可显示 / 隐藏对应殿堂曲线，鼠标悬停查看每日明细。</p>
+  </section>
+</main>
+
+<div class="mask" id="mask"><div class="modal" id="modalBox"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ==================== 基础常量 ==================== */
+const LAMP_TYPES = {
+  butter:     {name:'酥油灯', icon:'🪔', price:30},
+  lotus:      {name:'莲花灯', icon:'🪷', price:50},
+  electronic: {name:'电子灯', icon:'💡', price:20},
+  eternal:    {name:'长明灯', icon:'🕯️', price:100},
+};
+const HALL_DEFS = [
+  {id:'daxiong', name:'大雄宝殿', rows:6, cols:10, color:'#b8860b'},
+  {id:'guanyin', name:'观音殿',   rows:5, cols:8,  color:'#2f9e8f'},
+  {id:'dizang',  name:'地藏殿',   rows:4, cols:8,  color:'#8a6fc9'},
+  {id:'yaoshi',  name:'药师殿',   rows:4, cols:6,  color:'#3d8fd1'},
+];
+const SPECS = {
+  small: {name:'小杯', oil:0.05},
+  medium:{name:'中杯', oil:0.12},
+  large: {name:'大杯', oil:0.25},
+};
+const CN_NUM = ['一','二','三','四','五','六','七','八'];
+const OPERATORS = ['客堂·妙音','客堂·慧明','知客·觉远','客堂·普济'];
+const WS_PEOPLE = ['释慧明','释觉远','王建国','李淑珍'];
+const SURNAMES = ['王','李','张','刘','陈','杨','黄','赵','周','吴','徐','孙','林','何','郭','马','罗','宋','郑','谢','韩','唐','冯','于','董','程','曹','袁','邓','许'];
+const GIVEN = ['明慧','慧敏','建国','秀英','桂兰','志强','淑珍','文轩','静怡','德华','玉兰','国栋','春梅','永福','慧能','妙音','心安','觉悟','净莲','善缘','福生','慧根','安详','嘉庆','永康','思远','雨桐','子墨','若兰','德海'];
+const WISHES = ['阖家安康，福慧增长','工作顺利，心想事成','身体健康，消灾延寿','学业进步，金榜题名','生意兴隆，财源广进','出入平安，吉祥如意','逝者往生净土，离苦得乐','婚姻美满，早生贵子','','',''];
+
+/* ==================== 工具函数 ==================== */
+function $(s, el){ return (el||document).querySelector(s); }
+function mulberry32(a){ return function(){ a|=0; a=a+0x6D2B79F5|0; var t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+const rnd = mulberry32(20260919);
+function ri(min,max){ return Math.floor(rnd()*(max-min+1))+min; }
+function pick(arr){ return arr[Math.floor(rnd()*arr.length)]; }
+
+const TODAY = new Date(); TODAY.setHours(0,0,0,0);
+function parseDate(s){ const p=s.split('-'); return new Date(+p[0], +p[1]-1, +p[2]); }
+function toStr(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function short(s){ return s.slice(5); }
+function addDays(d,n){ const x=new Date(d); x.setDate(x.getDate()+n); return x; }
+function addMonths(d,n){ const x=new Date(d); x.setMonth(x.getMonth()+n); return x; }
+function daysLeft(endStr){ return Math.round((parseDate(endStr)-TODAY)/86400000); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+let toastTimer=null;
+function toast(msg, ok){
+  const t=$('#toast'); t.textContent=msg;
+  t.className='toast show'+(ok===false?' err':'');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>{ t.className='toast'; }, 2200);
+}
+
+/* ==================== 演示数据生成 ==================== */
+function genName(){
+  const n = pick(SURNAMES)+pick(GIVEN);
+  const r = rnd();
+  if(r<0.15) return n+'合家';
+  if(r<0.30) return n+'居士';
+  return n;
+}
+function genPhone(){
+  return '1'+pick(['3','5','7','8','9'])+ri(0,9)+'****'+String(ri(0,9999)).padStart(4,'0');
+}
+function weightedType(){
+  const r=rnd();
+  if(r<0.45) return 'butter';
+  if(r<0.70) return 'lotus';
+  if(r<0.90) return 'electronic';
+  return 'eternal';
+}
+function genLamp(){
+  const type = weightedType();
+  // 按目标状态分布生成结束日期：14% 已灭，11% 将燃尽，75% 常亮
+  const roll = rnd();
+  let end;
+  if(roll<0.14)      end = addDays(TODAY, -ri(1,40));
+  else if(roll<0.25) end = addDays(TODAY, ri(0,2));
+  else               end = addDays(TODAY, ri(3,150));
+  const totalMonths = type==='eternal' ? pick([6,12,12]) : pick([1,3,3,6,6,12]);
+  const start = addMonths(end, -totalMonths);
+  const price = LAMP_TYPES[type].price;
+  // 首期 + 续费记录（续费日期=上一期到期日，仅保留不晚于今天的）
+  const initM = Math.min(pick([1,3]), totalMonths);
+  const renewals = [];
+  let cursor = addMonths(start, initM), remain = totalMonths - initM;
+  while(remain>0){
+    const m = Math.min(pick([1,3,3,6]), remain);
+    if(cursor <= TODAY) renewals.push({date:toStr(cursor), months:m, amount:m*price, by:pick(OPERATORS)});
+    cursor = addMonths(cursor, m);
+    remain -= m;
+  }
+  return {
+    type:type,
+    devotee:{ name:genName(), phone:genPhone(), wish:pick(WISHES) },
+    start:toStr(start), end:toStr(end),
+    amount:initM*price,
+    renewals:renewals
+  };
+}
+function generateState(){
+  const halls = {};
+  HALL_DEFS.forEach(h=>{
+    const lamps = {};
+    for(let r=0;r<h.rows;r++) for(let c=0;c<h.cols;c++){
+      if(rnd()<0.18) continue;              // 约 18% 空位
+      lamps[r+'-'+c] = genLamp();
+    }
+    halls[h.id] = {lamps:lamps};
+  });
+  // 作坊：灯油领用 + 酥油灯制作
+  const oilRecords = [];
+  for(let i=0;i<9;i++){
+    oilRecords.push({ date:toStr(addDays(TODAY,-ri(0,29))), amount:ri(20,60), person:pick(WS_PEOPLE), note:pick(['寺库领入','寺库领入','外购补充','信众供养']) });
+  }
+  oilRecords.sort((a,b)=> b.date.localeCompare(a.date));
+  const productions = [];
+  for(let i=0;i<12;i++){
+    const spec = pick(['small','small','medium','medium','large']);
+    const qty = spec==='small' ? ri(80,260) : spec==='medium' ? ri(50,150) : ri(20,70);
+    productions.push({ date:toStr(addDays(TODAY,-ri(0,29))), spec:spec, qty:qty, oil:+(qty*SPECS[spec].oil).toFixed(1), by:pick(WS_PEOPLE) });
+  }
+  productions.sort((a,b)=> b.date.localeCompare(a.date));
+  const oilIn  = oilRecords.reduce((s,r)=>s+r.amount,0);
+  const oilOut = productions.reduce((s,r)=>s+r.oil,0);
+  const workshop = {
+    oilStock: +(160 + oilIn - oilOut).toFixed(1),
+    oilRecords:oilRecords,
+    productions:productions,
+    products:{
+      small:  150 + productions.filter(p=>p.spec==='small').reduce((s,p)=>s+p.qty,0),
+      medium:  90 + productions.filter(p=>p.spec==='medium').reduce((s,p)=>s+p.qty,0),
+      large:   50 + productions.filter(p=>p.spec==='large').reduce((s,p)=>s+p.qty,0),
+    }
+  };
+  // 近 14 天各殿堂供灯消耗
+  const days = [];
+  for(let i=13;i>=0;i--) days.push(toStr(addDays(TODAY,-i)));
+  const baseMap = {daxiong:14, guanyin:9, dizang:7, yaoshi:5};
+  const data = {};
+  HALL_DEFS.forEach(h=>{
+    data[h.id] = days.map(d=>{
+      const wd = parseDate(d).getDay();
+      const wk = (wd===0||wd===6) ? 1.5 : 1;   // 周末香客多
+      return Math.max(1, Math.round(baseMap[h.id]*wk*(0.75+rnd()*0.5)));
+    });
+  });
+  return { halls:halls, workshop:workshop, consumption:{days:days, data:data} };
+}
+
+/* ==================== 状态存取 ==================== */
+const LS_KEY = 'templeLampPanel.v1';
+let state;
+function save(){
+  try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){}
+}
+function load(){
+  try{
+    const raw = localStorage.getItem(LS_KEY);
+    if(raw){ state = JSON.parse(raw); return; }
+  }catch(e){}
+  state = generateState();
+  save();
+}
+
+/* ==================== 状态计算 ==================== */
+function lampStatus(l){ const dl=daysLeft(l.end); return dl<0 ? 'out' : dl<3 ? 'warn' : 'lit'; }
+function hallStats(hid){
+  const s = {total:0, lit:0, warn:0, out:0};
+  Object.values(state.halls[hid].lamps).forEach(l=>{ s.total++; s[lampStatus(l)]++; });
+  return s;
+}
+function globalStats(){
+  const g = {total:0, lit:0, warn:0, out:0};
+  HALL_DEFS.forEach(h=>{
+    const s = hallStats(h.id);
+    g.total+=s.total; g.lit+=s.lit; g.warn+=s.warn; g.out+=s.out;
+  });
+  return g;
+}
+const STATUS_META = {
+  lit:{name:'常亮', badge:'bdg-lit'},
+  warn:{name:'即将燃尽', badge:'bdg-warn'},
+  out:{name:'已灭', badge:'bdg-out'},
+};
+function remainText(l){
+  const dl = daysLeft(l.end);
+  if(dl<0) return '已灭 '+(-dl)+' 天';
+  if(dl===0) return '今日到期';
+  return '剩余 '+dl+' 天';
+}
+
+/* ==================== 供灯布局页 ==================== */
+let currentHall = 'daxiong';
+
+function renderHallCards(){
+  $('#hallCards').innerHTML = HALL_DEFS.map(h=>{
+    const s = hallStats(h.id);
+    const cap = h.rows*h.cols;
+    return '<div class="hall-card'+(h.id===currentHall?' active':'')+'" data-hall="'+h.id+'">'
+      +'<h3>'+h.name+' <small>'+s.total+' / '+cap+' 位</small></h3>'
+      +'<div class="hc-counts">'
+      +'<span><i class="dot" style="background:var(--green)"></i>常亮<b>'+s.lit+'</b></span>'
+      +'<span><i class="dot" style="background:var(--amber)"></i>将尽<b>'+s.warn+'</b></span>'
+      +'<span><i class="dot" style="background:var(--danger)"></i>已灭<b>'+s.out+'</b></span>'
+      +'</div></div>';
+  }).join('');
+}
+
+function lampCell(hid,r,c,l){
+  const st = lampStatus(l);
+  const t = LAMP_TYPES[l.type];
+  const posName = HALL_DEFS.find(h=>h.id===hid).name+' '+CN_NUM[r]+'排'+(c+1)+'号';
+  return '<div class="lamp st-'+st+'" data-hall="'+hid+'" data-r="'+r+'" data-c="'+c+'"'
+    +' title="'+esc(posName+'｜'+t.name+'｜'+l.devotee.name+'｜'+l.start+' ~ '+l.end)+'">'
+    +'<div class="lamp-top"><span class="lamp-ico">'+t.icon+'</span><span>'+t.name+'</span><i class="sdot"></i></div>'
+    +'<div class="lamp-name">'+esc(l.devotee.name)+'</div>'
+    +'<div class="lamp-date">'+short(l.start)+' ~ '+short(l.end)+'</div>'
+    +'</div>';
+}
+function emptyCell(hid,r,c){
+  return '<div class="lamp st-empty" data-hall="'+hid+'" data-r="'+r+'" data-c="'+c+'" title="空位，点击登记新供灯">'
+    +'<div class="lamp-plus">＋</div><div class="lamp-empty-txt">空位</div></div>';
+}
+function renderGrid(){
+  const h = HALL_DEFS.find(x=>x.id===currentHall);
+  const lamps = state.halls[currentHall].lamps;
+  let html = '<div class="rl"></div>';
+  for(let c=0;c<h.cols;c++) html += '<div class="rl">'+(c+1)+'</div>';
+  for(let r=0;r<h.rows;r++){
+    html += '<div class="rl">'+CN_NUM[r]+'排</div>';
+    for(let c=0;c<h.cols;c++){
+      const l = lamps[r+'-'+c];
+      html += l ? lampCell(currentHall,r,c,l) : emptyCell(currentHall,r,c);
+    }
+  }
+  const rack = $('#rack');
+  rack.style.gridTemplateColumns = '34px repeat('+h.cols+', 104px)';
+  rack.innerHTML = html;
+}
+
+/* ==================== 弹窗：灯位详情 / 新供灯 ==================== */
+function openModal(html){
+  $('#modalBox').innerHTML = html;
+  $('#mask').classList.add('show');
+}
+function closeModal(){ $('#mask').classList.remove('show'); }
+
+function openLampModal(hid, r, c){
+  const lamp = state.halls[hid].lamps[r+'-'+c];
+  if(!lamp){ openNewLampModal(hid,r,c); return; }
+  const h = HALL_DEFS.find(x=>x.id===hid);
+  const t = LAMP_TYPES[lamp.type];
+  const st = lampStatus(lamp);
+  const meta = STATUS_META[st];
+  const totalAmt = lamp.amount + lamp.renewals.reduce((s,x)=>s+x.amount,0);
+  const rows = lamp.renewals.length
+    ? lamp.renewals.map((x,i)=>'<tr><td>'+x.date+'</td><td>'+x.months+' 个月</td><td>¥'+x.amount+'</td><td>'+esc(x.by)+'</td></tr>').join('')
+    : '<tr><td colspan="4" class="empty-row">暂无续费记录</td></tr>';
+  const html =
+    '<div class="m-head">'
+    +'<h2>'+t.icon+' '+t.name+'</h2>'
+    +'<span class="badge '+meta.badge+'">'+meta.name+' · '+remainText(lamp)+'</span>'
+    +'<span class="pos">'+h.name+' · '+CN_NUM[r]+'排'+(c+1)+'号</span>'
+    +'<button class="m-close" id="mClose">✕</button>'
+    +'</div><div class="m-body">'
+    +'<div class="sec-title">供奉人信息</div>'
+    +'<div class="kv">'
+    +'<span class="k">姓名</span><span>'+esc(lamp.devotee.name)+'</span>'
+    +'<span class="k">联系电话</span><span>'+esc(lamp.devotee.phone)+'</span>'
+    +(lamp.devotee.wish ? '<span class="k">祈愿</span><span>'+esc(lamp.devotee.wish)+'</span>' : '')
+    +'</div>'
+    +'<div class="sec-title">供奉期限</div>'
+    +'<div class="kv">'
+    +'<span class="k">起止日期</span><span>'+lamp.start+' ～ '+lamp.end+'</span>'
+    +'<span class="k">累计功德金</span><span>¥'+totalAmt+'（首期 ¥'+lamp.amount+'）</span>'
+    +'</div>'
+    +'<div class="sec-title">续费记录（'+lamp.renewals.length+' 次）</div>'
+    +'<div class="tbl-wrap"><table class="tbl"><thead><tr><th>日期</th><th>续期</th><th>金额</th><th>经办人</th></tr></thead>'
+    +'<tbody>'+rows+'</tbody></table></div>'
+    +'<div class="sec-title">办理续费</div>'
+    +'<div class="form-grid">'
+    +'<div class="field"><label>续期时长</label><select id="rnMonths">'
+    +'<option value="1">1 个月</option><option value="3" selected>3 个月</option>'
+    +'<option value="6">6 个月</option><option value="12">12 个月</option></select></div>'
+    +'<div class="field"><label>功德金（¥）</label><input type="number" id="rnAmount" min="1" step="1"></div>'
+    +'<div class="field"><label>&nbsp;</label><button class="btn" id="rnSubmit">确认续费</button></div>'
+    +'</div></div>';
+  openModal(html);
+  const monthsSel = $('#rnMonths'), amtInput = $('#rnAmount');
+  const syncAmt = ()=>{ amtInput.value = (+monthsSel.value) * t.price; };
+  monthsSel.onchange = syncAmt; syncAmt();
+  $('#mClose').onclick = closeModal;
+  $('#rnSubmit').onclick = ()=>{
+    const months = +monthsSel.value;
+    const amount = +amtInput.value;
+    if(!amount || amount<=0){ toast('请填写有效的功德金金额', false); return; }
+    lamp.renewals.push({date:toStr(TODAY), months:months, amount:amount, by:'客堂·值班'});
+    const base = parseDate(lamp.end) > TODAY ? parseDate(lamp.end) : TODAY;
+    lamp.end = toStr(addMonths(base, months));
+    save();
+    renderHallCards(); renderGrid();
+    openLampModal(hid, r, c);   // 刷新弹窗内容
+    toast('续费成功，已延期至 '+lamp.end);
+  };
+}
+
+function openNewLampModal(hid, r, c){
+  const h = HALL_DEFS.find(x=>x.id===hid);
+  const typeOpts = Object.keys(LAMP_TYPES).map(k=>'<option value="'+k+'">'+LAMP_TYPES[k].icon+' '+LAMP_TYPES[k].name+'（¥'+LAMP_TYPES[k].price+'/月）</option>').join('');
+  const html =
+    '<div class="m-head"><h2>🙏 登记新供灯</h2>'
+    +'<span class="pos">'+h.name+' · '+CN_NUM[r]+'排'+(c+1)+'号</span>'
+    +'<button class="m-close" id="mClose">✕</button></div>'
+    +'<div class="m-body">'
+    +'<div class="sec-title">供奉人信息</div>'
+    +'<div class="form-grid">'
+    +'<div class="field"><label>姓名 *</label><input type="text" id="nlName" placeholder="如：张明慧 / 李居士合家"></div>'
+    +'<div class="field"><label>联系电话</label><input type="text" id="nlPhone" placeholder="选填"></div>'
+    +'</div>'
+    +'<div class="field" style="margin-top:10px"><label>祈愿文</label><input type="text" id="nlWish" placeholder="选填，如：阖家安康，福慧增长"></div>'
+    +'<div class="sec-title">供灯信息</div>'
+    +'<div class="form-grid">'
+    +'<div class="field"><label>灯型</label><select id="nlType">'+typeOpts+'</select></div>'
+    +'<div class="field"><label>供奉时长</label><select id="nlMonths">'
+    +'<option value="1">1 个月</option><option value="3" selected>3 个月</option>'
+    +'<option value="6">6 个月</option><option value="12">12 个月</option></select></div>'
+    +'<div class="field"><label>功德金（¥）</label><input type="number" id="nlAmount" min="1" step="1"></div>'
+    +'</div>'
+    +'<button class="btn btn-block" id="nlSubmit">确认登记 · 点亮供灯</button>'
+    +'</div>';
+  openModal(html);
+  const typeSel=$('#nlType'), monthsSel=$('#nlMonths'), amtInput=$('#nlAmount');
+  const syncAmt = ()=>{ amtInput.value = LAMP_TYPES[typeSel.value].price * (+monthsSel.value); };
+  typeSel.onchange = syncAmt; monthsSel.onchange = syncAmt; syncAmt();
+  $('#mClose').onclick = closeModal;
+  $('#nlSubmit').onclick = ()=>{
+    const name = $('#nlName').value.trim();
+    if(!name){ toast('请填写供奉人姓名', false); return; }
+    const amount = +amtInput.value;
+    if(!amount || amount<=0){ toast('请填写有效的功德金金额', false); return; }
+    const months = +monthsSel.value;
+    state.halls[hid].lamps[r+'-'+c] = {
+      type: typeSel.value,
+      devotee:{ name:name, phone:$('#nlPhone').value.trim()||'—', wish:$('#nlWish').value.trim() },
+      start: toStr(TODAY),
+      end: toStr(addMonths(TODAY, months)),
+      amount: amount,
+      renewals: []
+    };
+    save();
+    renderHallCards(); renderGrid();
+    closeModal();
+    toast('已为 '+name+' 点亮供灯');
+  };
+}
+
+/* ==================== 灯油作坊页 ==================== */
+function renderWorkshop(){
+  const ws = state.workshop;
+  const monthPrefix = toStr(TODAY).slice(0,7);
+  const oilInMonth  = ws.oilRecords.filter(r=>r.date.slice(0,7)===monthPrefix).reduce((s,r)=>s+r.amount,0);
+  const prodMonth   = ws.productions.filter(p=>p.date.slice(0,7)===monthPrefix).reduce((s,p)=>s+p.qty,0);
+  const prodTotal   = ws.products.small + ws.products.medium + ws.products.large;
+  $('#wsCards').innerHTML =
+    '<div class="stat-card"><div class="num">'+ws.oilStock.toFixed(1)+'<small>kg</small></div><div class="lbl">灯油库存</div></div>'
+    +'<div class="stat-card"><div class="num">'+oilInMonth+'<small>kg</small></div><div class="lbl">本月灯油领用</div></div>'
+    +'<div class="stat-card"><div class="num">'+prodMonth+'<small>盏</small></div><div class="lbl">本月酥油灯制作</div></div>'
+    +'<div class="stat-card"><div class="num">'+prodTotal+'<small>盏</small></div><div class="lbl">成品在库（小 '+ws.products.small+' / 中 '+ws.products.medium+' / 大 '+ws.products.large+'）</div></div>';
+  $('#oilTbody').innerHTML = ws.oilRecords.map(r=>
+    '<tr><td>'+r.date+'</td><td>'+r.amount+'</td><td>'+esc(r.person)+'</td><td>'+esc(r.note)+'</td></tr>').join('')
+    || '<tr><td colspan="4" class="empty-row">暂无记录</td></tr>';
+  $('#prodTbody').innerHTML = ws.productions.map(p=>
+    '<tr><td>'+p.date+'</td><td>'+SPECS[p.spec].name+'</td><td>'+p.qty+'</td><td>'+p.oil+'</td><td>'+esc(p.by)+'</td></tr>').join('')
+    || '<tr><td colspan="5" class="empty-row">暂无记录</td></tr>';
+  updateOilNeedTip();
+}
+function updateOilNeedTip(){
+  const spec = $('#prodSpec').value;
+  const qty = +$('#prodQty').value || 0;
+  const need = +(SPECS[spec].oil * qty).toFixed(1);
+  const ok = need <= state.workshop.oilStock;
+  $('#oilNeedTip').innerHTML = '本次制作预计耗油 <b>'+need+' kg</b>，当前库存 '+state.workshop.oilStock.toFixed(1)+' kg'
+    +(ok ? '，库存充足。' : '，<b style="color:var(--danger)">库存不足！</b>');
+}
+
+/* ==================== 消耗统计页 ==================== */
+const hiddenSeries = new Set();
+
+function renderStatCards(){
+  const g = globalStats();
+  const days = state.consumption.days;
+  const n = days.length;
+  const todaySum = HALL_DEFS.reduce((s,h)=> s + state.consumption.data[h.id][n-1], 0);
+  let weekSum = 0;
+  HALL_DEFS.forEach(h=>{ for(let i=n-7;i<n;i++) weekSum += state.consumption.data[h.id][i]; });
+  $('#statCards').innerHTML =
+    '<div class="stat-card"><div class="num">'+todaySum+'<small>盏</small></div><div class="lbl">今日全寺供灯消耗</div></div>'
+    +'<div class="stat-card"><div class="num">'+weekSum+'<small>盏</small></div><div class="lbl">近 7 日累计消耗</div></div>'
+    +'<div class="stat-card"><div class="num">'+g.warn+'<small>盏</small></div><div class="lbl">即将燃尽（需提醒续费）</div></div>'
+    +'<div class="stat-card"><div class="num">'+g.out+'<small>盏</small></div><div class="lbl">已灭待清理 / 重供</div></div>';
+}
+
+function renderChartLegend(){
+  $('#chartLegend').innerHTML = HALL_DEFS.map(h=>
+    '<span class="cl-item'+(hiddenSeries.has(h.id)?' off':'')+'" data-hall="'+h.id+'">'
+    +'<i class="cl-line" style="background:'+h.color+'"></i>'+h.name+'</span>').join('');
+}
+
+function renderChart(){
+  const svg = $('#chart');
+  const days = state.consumption.days;
+  const W=880, H=380, P={l:48, r:20, t:26, b:44};
+  const iw = W-P.l-P.r, ih = H-P.t-P.b;
+  const series = HALL_DEFS.filter(h=>!hiddenSeries.has(h.id));
+  const allVals = series.length ? series.flatMap(h=>state.consumption.data[h.id]) : [1];
+  const maxY = Math.max(5, Math.ceil(Math.max.apply(null, allVals)/5)*5);
+  const x = i => P.l + iw*i/(days.length-1);
+  const y = v => P.t + ih*(1 - v/maxY);
+  let s = '';
+  // 横向网格线 + Y 轴刻度
+  for(let g=0; g<=5; g++){
+    const v = maxY*g/5, yy = y(v);
+    s += '<line x1="'+P.l+'" y1="'+yy+'" x2="'+(W-P.r)+'" y2="'+yy+'" stroke="#ece3c8" stroke-width="1"/>';
+    s += '<text x="'+(P.l-8)+'" y="'+(yy+4)+'" text-anchor="end" font-size="11" fill="#8d8168">'+v+'</text>';
+  }
+  // X 轴日期标签
+  days.forEach((d,i)=>{
+    if(i%2===0) s += '<text x="'+x(i)+'" y="'+(H-P.b+20)+'" text-anchor="middle" font-size="11" fill="#8d8168">'+d.slice(5)+'</text>';
+  });
+  s += '<text x="14" y="'+P.t+'" font-size="11" fill="#8d8168">盏</text>';
+  // 各殿堂折线
+  series.forEach(h=>{
+    const vals = state.consumption.data[h.id];
+    const pts = vals.map((v,i)=> x(i).toFixed(1)+','+y(v).toFixed(1)).join(' ');
+    s += '<polyline points="'+pts+'" fill="none" stroke="'+h.color+'" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>';
+    vals.forEach((v,i)=>{
+      s += '<circle cx="'+x(i)+'" cy="'+y(v)+'" r="3.2" fill="#fffdf6" stroke="'+h.color+'" stroke-width="2"/>';
+    });
+  });
+  // 悬停引导线 + 捕获层
+  s += '<line id="guideLine" x1="0" y1="'+P.t+'" x2="0" y2="'+(H-P.b)+'" stroke="#c9a227" stroke-width="1" stroke-dasharray="4 3" visibility="hidden"/>';
+  s += '<rect id="chartHover" x="'+P.l+'" y="'+P.t+'" width="'+iw+'" height="'+ih+'" fill="transparent"/>';
+  svg.innerHTML = s;
+
+  const tip = $('#chartTip');
+  const hoverRect = svg.querySelector('#chartHover');
+  const guide = svg.querySelector('#guideLine');
+  hoverRect.addEventListener('mousemove', e=>{
+    const rect = svg.getBoundingClientRect();
+    const mx = (e.clientX - rect.left) * (W/rect.width);
+    let i = Math.round((mx - P.l) / (iw/(days.length-1)));
+    i = Math.max(0, Math.min(days.length-1, i));
+    guide.setAttribute('x1', x(i)); guide.setAttribute('x2', x(i));
+    guide.setAttribute('visibility','visible');
+    let rows = '';
+    HALL_DEFS.forEach(h=>{
+      if(hiddenSeries.has(h.id)) return;
+      rows += '<div><span style="color:'+h.color+'">●</span> '+h.name+'：'+state.consumption.data[h.id][i]+' 盏</div>';
+    });
+    tip.innerHTML = '<b>'+days[i]+'</b>'+rows;
+    tip.style.display = 'block';
+    const wrapRect = svg.parentElement.getBoundingClientRect();
+    let tx = e.clientX - wrapRect.left + 14;
+    if(tx + 150 > wrapRect.width) tx = e.clientX - wrapRect.left - 160;
+    tip.style.left = tx+'px';
+    tip.style.top = (e.clientY - wrapRect.top - 10)+'px';
+  });
+  hoverRect.addEventListener('mouseleave', ()=>{
+    tip.style.display = 'none';
+    guide.setAttribute('visibility','hidden');
+  });
+}
+
+/* ==================== 事件绑定与初始化 ==================== */
+function bindEvents(){
+  // 页签切换
+  document.querySelectorAll('.tab').forEach(tab=>{
+    tab.addEventListener('click', ()=>{
+      document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+      document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+      tab.classList.add('active');
+      $('#page-'+tab.dataset.page).classList.add('active');
+    });
+  });
+  // 殿堂卡片选择
+  $('#hallCards').addEventListener('click', e=>{
+    const card = e.target.closest('.hall-card');
+    if(!card) return;
+    currentHall = card.dataset.hall;
+    renderHallCards(); renderGrid();
+  });
+  // 灯位点击（事件委托）
+  $('#rack').addEventListener('click', e=>{
+    const cell = e.target.closest('.lamp');
+    if(!cell) return;
+    openLampModal(cell.dataset.hall, +cell.dataset.r, +cell.dataset.c);
+  });
+  // 弹窗关闭
+  $('#mask').addEventListener('click', e=>{ if(e.target.id==='mask') closeModal(); });
+  document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeModal(); });
+  // 灯油领用
+  $('#oilForm').addEventListener('submit', e=>{
+    e.preventDefault();
+    const amount = +$('#oilAmount').value;
+    const person = $('#oilPerson').value.trim();
+    if(!amount || amount<=0){ toast('请填写有效的领用数量', false); return; }
+    if(!person){ toast('请填写领用人', false); return; }
+    state.workshop.oilRecords.unshift({ date:toStr(TODAY), amount:amount, person:person, note:$('#oilNote').value });
+    state.workshop.oilStock = +(state.workshop.oilStock + amount).toFixed(1);
+    save(); renderWorkshop();
+    toast('已登记灯油领用 '+amount+' kg');
+  });
+  // 酥油灯制作
+  $('#prodSpec').addEventListener('change', updateOilNeedTip);
+  $('#prodQty').addEventListener('input', updateOilNeedTip);
+  $('#prodForm').addEventListener('submit', e=>{
+    e.preventDefault();
+    const spec = $('#prodSpec').value;
+    const qty = Math.floor(+$('#prodQty').value);
+    const person = $('#prodPerson').value.trim();
+    if(!qty || qty<=0){ toast('请填写有效的制作数量', false); return; }
+    const need = +(SPECS[spec].oil * qty).toFixed(1);
+    if(need > state.workshop.oilStock){ toast('灯油库存不足，无法制作', false); return; }
+    state.workshop.oilStock = +(state.workshop.oilStock - need).toFixed(1);
+    state.workshop.products[spec] += qty;
+    state.workshop.productions.unshift({ date:toStr(TODAY), spec:spec, qty:qty, oil:need, by:person||'释慧明' });
+    save(); renderWorkshop();
+    toast('已制作 '+SPECS[spec].name+'酥油灯 '+qty+' 盏，耗油 '+need+' kg');
+  });
+  // 图表图例开关
+  $('#chartLegend').addEventListener('click', e=>{
+    const item = e.target.closest('.cl-item');
+    if(!item) return;
+    const id = item.dataset.hall;
+    if(hiddenSeries.has(id)) hiddenSeries.delete(id); else hiddenSeries.add(id);
+    renderChartLegend(); renderChart();
+  });
+  // 重置演示数据
+  $('#btnReset').addEventListener('click', ()=>{
+    if(!confirm('确定要重置全部演示数据吗？当前的续费、登记修改将丢失。')) return;
+    state = generateState();
+    save();
+    renderAll();
+    toast('演示数据已重置');
+  });
+}
+
+function renderAll(){
+  renderHallCards(); renderGrid();
+  renderWorkshop();
+  renderStatCards(); renderChartLegend(); renderChart();
+}
+
+load();
+$('#todayStr').textContent = toStr(TODAY)+' · '+['周日','周一','周二','周三','周四','周五','周六'][TODAY.getDay()];
+bindEvents();
+renderAll();
+</script>
+</body>
+</html>
