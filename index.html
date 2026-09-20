@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>寺院供灯管理面板</title>
+<style>
+  :root{
+    --bg:#f5efe2;
+    --bg2:#ede3cd;
+    --paper:#fbf7ec;
+    --ink:#3a2c20;
+    --ink2:#6f5d48;
+    --maroon:#7a2e22;
+    --maroon2:#96402f;
+    --gold:#b8893b;
+    --gold-light:#d9b978;
+    --line:#e3d6bb;
+    --green:#2e8b57;
+    --green-bg:#e3f2e3;
+    --yellow:#d9a11e;
+    --yellow-bg:#fdf3d0;
+    --red:#c0392b;
+    --red-bg:#fbe2de;
+    --grey:#9a8f7d;
+    --shadow:0 2px 10px rgba(80,50,20,.08);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:"Noto Serif SC","Songti SC","STSong","SimSun",serif;
+    background:
+      radial-gradient(1200px 500px at 80% -10%, rgba(184,137,59,.12), transparent 60%),
+      var(--bg);
+    color:var(--ink);
+    font-size:14px;
+    line-height:1.5;
+  }
+  /* ===== 头部 ===== */
+  header{
+    background:linear-gradient(135deg,#6e281d 0%,#8a3a26 55%,#7a2e22 100%);
+    color:#f7ecd4;
+    padding:18px 26px 14px;
+    border-bottom:4px solid var(--gold);
+    box-shadow:0 3px 14px rgba(90,30,15,.35);
+  }
+  .head-row{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+  .dharmacakra{
+    width:46px;height:46px;flex:0 0 auto;border-radius:50%;
+    border:2px solid var(--gold-light);
+    display:flex;align-items:center;justify-content:center;
+    font-size:24px;color:var(--gold-light);
+    background:radial-gradient(circle,#8f3a25,#5f2218);
+  }
+  h1{font-size:23px;letter-spacing:4px;font-weight:700}
+  .sub{font-size:12px;color:var(--gold-light);letter-spacing:2px;margin-top:2px}
+  .head-actions{margin-left:auto;display:flex;gap:10px;align-items:center}
+  .today{font-size:13px;color:#ecd9ac}
+  button{font-family:inherit;cursor:pointer;border:none;border-radius:6px}
+  .btn{
+    background:linear-gradient(#b98a45,#9c6f2e);
+    color:#fff8e8;padding:8px 16px;font-size:13px;letter-spacing:2px;
+    border:1px solid #caa25c;box-shadow:inset 0 1px 0 rgba(255,255,255,.25);
+  }
+  .btn:hover{filter:brightness(1.08)}
+  .btn.ghost{background:rgba(255,248,232,.12);border:1px solid rgba(217,185,120,.6);color:#f3e2bd}
+  .btn.small{padding:5px 12px;font-size:12px;letter-spacing:1px}
+  .btn.danger{background:linear-gradient(#c0503f,#9c3324);border-color:#cf6a58}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+
+  /* ===== 统计条 ===== */
+  .stats{
+    display:grid;grid-template-columns:repeat(5,1fr);gap:12px;
+    padding:16px 26px 0;
+  }
+  .stat{
+    background:var(--paper);border:1px solid var(--line);border-radius:10px;
+    padding:12px 14px;box-shadow:var(--shadow);position:relative;overflow:hidden;
+  }
+  .stat::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--gold)}
+  .stat .k{font-size:12px;color:var(--ink2);letter-spacing:2px}
+  .stat .v{font-size:24px;font-weight:700;margin-top:2px}
+  .stat .v small{font-size:12px;font-weight:400;color:var(--ink2);margin-left:4px}
+  .stat.green::before{background:var(--green)} .stat.green .v{color:var(--green)}
+  .stat.yellow::before{background:var(--yellow)} .stat.yellow .v{color:var(--yellow)}
+  .stat.red::before{background:var(--red)} .stat.red .v{color:var(--red)}
+
+  /* ===== 主体 ===== */
+  main{padding:16px 26px 40px;max-width:1500px;margin:0 auto}
+  section.panel{
+    background:var(--paper);border:1px solid var(--line);border-radius:12px;
+    box-shadow:var(--shadow);margin-top:16px;
+  }
+  .panel-head{
+    display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+    padding:14px 18px;border-bottom:1px solid var(--line);
+  }
+  .panel-head h2{font-size:17px;letter-spacing:3px;color:var(--maroon);display:flex;align-items:center;gap:8px}
+  .panel-head h2::before{content:"❖";color:var(--gold);font-size:13px}
+  .panel-body{padding:16px 18px}
+
+  /* tabs */
+  .tabs{display:flex;gap:6px;flex-wrap:wrap}
+  .tab{
+    padding:7px 16px;border-radius:20px;font-size:13px;letter-spacing:1px;
+    background:var(--bg2);color:var(--ink2);border:1px solid var(--line);
+  }
+  .tab .cnt{font-size:11px;opacity:.75;margin-left:4px}
+  .tab.active{background:var(--maroon);color:#fbeed2;border-color:var(--maroon2)}
+  .tab.spacer{flex:1;background:none;border:none;pointer-events:none}
+
+  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--ink2);align-items:center}
+  .dot{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+  .dot.g{background:var(--green)} .dot.y{background:var(--yellow)} .dot.r{background:var(--red)} .dot.o{background:transparent;border:1.5px dashed var(--grey)}
+
+  .filters{display:flex;gap:6px;flex-wrap:wrap;margin-left:auto}
+  .chip{
+    padding:4px 12px;border-radius:14px;font-size:12px;
+    background:transparent;border:1px solid var(--line);color:var(--ink2);
+  }
+  .chip.active{background:var(--gold);color:#fff;border-color:var(--gold)}
+
+  /* 灯架 */
+  .rack-meta{font-size:12px;color:var(--ink2);margin-bottom:10px;letter-spacing:1px}
+  .rack{
+    display:grid;gap:7px;
+    background:linear-gradient(180deg,#f1e6cd,#e9dbbc);
+    border:1px solid #d8c69c;border-radius:10px;padding:14px;
+  }
+  .lamp{
+    position:relative;border-radius:8px;padding:7px 6px 6px;min-height:74px;
+    background:var(--paper);border:1.5px solid var(--line);
+    cursor:pointer;display:flex;flex-direction:column;gap:3px;
+    transition:transform .12s, box-shadow .12s;
+    border-left-width:5px;text-align:left;font-family:inherit;
+  }
+  .lamp:hover{transform:translateY(-2px);box-shadow:0 5px 14px rgba(90,50,20,.18);z-index:2}
+  .lamp.green{border-left-color:var(--green)}
+  .lamp.yellow{border-left-color:var(--yellow);background:var(--yellow-bg)}
+  .lamp.red{border-left-color:var(--red);background:var(--red-bg)}
+  .lamp.empty{
+    background:repeating-linear-gradient(45deg,#faf6ea,#faf6ea 6px,#f3ecda 6px,#f3ecda 12px);
+    border:1.5px dashed #c9bb97;border-left:1.5px dashed #c9bb97;
+    align-items:center;justify-content:center;color:var(--grey);min-height:74px;
+  }
+  .lamp.empty:hover{border-color:var(--gold);color:var(--maroon)}
+  .lamp .top{display:flex;align-items:center;gap:5px}
+  .badge{
+    font-size:10px;padding:1px 6px;border-radius:8px;color:#fff;letter-spacing:1px;flex:0 0 auto;
+  }
+  .badge.su{background:#c2772b}
+  .badge.lian{background:#c0507c}
+  .badge.dian{background:#3f7ea6}
+  .badge.chang{background:#7a4aa0}
+  .pos{font-size:10px;color:var(--grey);margin-left:auto}
+  .lamp.red .pos{color:#b06a60}
+  .lamp.yellow .pos{color:#a9842e}
+  .flame{font-size:12px;line-height:1}
+  .lamp.green .flame{animation:flicker 1.6s ease-in-out infinite}
+  @keyframes flicker{0%,100%{opacity:1}45%{opacity:.75}60%{opacity:.95}75%{opacity:.7}}
+  .devotee{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .dates{font-size:10.5px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .countdown{font-size:10.5px;font-weight:700}
+  .countdown.g{color:var(--green)} .countdown.y{color:#a87b10} .countdown.r{color:var(--red)}
+  .empty-hint{font-size:12px;letter-spacing:2px}
+  .empty .plus{font-size:18px;line-height:1}
+
+  /* ===== 弹窗 ===== */
+  .overlay{
+    position:fixed;inset:0;background:rgba(50,30,15,.5);backdrop-filter:blur(2px);
+    display:none;align-items:center;justify-content:center;z-index:50;padding:20px;
+  }
+  .overlay.show{display:flex}
+  .modal{
+    background:var(--paper);border-radius:14px;width:min(680px,100%);
+    max-height:90vh;display:flex;flex-direction:column;overflow:hidden;
+    border:2px solid var(--gold-light);box-shadow:0 20px 60px rgba(60,20,10,.4);
+  }
+  .modal-head{
+    background:linear-gradient(135deg,#7a2e22,#96402f);color:#f8ead0;
+    padding:14px 20px;display:flex;align-items:center;gap:10px;
+  }
+  .modal-head h3{font-size:17px;letter-spacing:3px}
+  .modal-head .x{margin-left:auto;background:none;color:#f0dcb2;font-size:20px;line-height:1;padding:4px 8px}
+  .modal-body{padding:18px 20px;overflow-y:auto}
+  .modal-foot{padding:12px 20px;border-top:1px solid var(--line);display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;background:#f7f0df}
+
+  .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 18px;margin-bottom:14px}
+  .info-grid .item{}
+  .info-grid .lbl{font-size:11px;color:var(--ink2);letter-spacing:2px}
+  .info-grid .val{font-size:14px;font-weight:700;margin-top:1px}
+  .status-pill{display:inline-block;padding:2px 12px;border-radius:12px;font-size:12px;font-weight:700}
+  .status-pill.green{background:var(--green-bg);color:var(--green)}
+  .status-pill.yellow{background:var(--yellow-bg);color:#a87b10}
+  .status-pill.red{background:var(--red-bg);color:var(--red)}
+  .blessing{
+    border:1px dashed var(--gold);background:#fdf8ec;border-radius:8px;
+    padding:10px 14px;font-size:13px;color:#7c5c22;margin-bottom:14px;text-align:center;letter-spacing:2px;
+  }
+  h4.sec{font-size:13px;letter-spacing:3px;color:var(--maroon);margin:6px 0 8px;border-left:3px solid var(--gold);padding-left:8px}
+  table{width:100%;border-collapse:collapse;font-size:12.5px}
+  th,td{padding:7px 9px;text-align:left;border-bottom:1px solid var(--line)}
+  th{background:var(--bg2);color:var(--ink2);font-weight:600;font-size:12px;letter-spacing:1px}
+  td.num,th.num{text-align:right}
+  .empty-note{color:var(--grey);font-size:12.5px;padding:10px;text-align:center}
+
+  /* 表单 */
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 16px}
+  .field{display:flex;flex-direction:column;gap:4px}
+  .field.full{grid-column:1/-1}
+  .field label{font-size:12px;color:var(--ink2);letter-spacing:2px}
+  .field label .req{color:var(--red)}
+  input,select,textarea{
+    font-family:inherit;font-size:13.5px;padding:8px 10px;border-radius:6px;
+    border:1px solid #d3c4a2;background:#fffdf8;color:var(--ink);width:100%;
+  }
+  input:focus,select:focus,textarea:focus{outline:2px solid rgba(184,137,59,.45);border-color:var(--gold)}
+  textarea{resize:vertical;min-height:56px}
+  .price-hint{font-size:11.5px;color:var(--ink2);margin-top:2px}
+
+  /* 作坊 */
+  .ws-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:18px}
+  .stock-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+  .stock-card{border:1px solid var(--line);border-radius:10px;padding:12px;background:#fdfaf1;text-align:center}
+  .stock-card .k{font-size:12px;color:var(--ink2);letter-spacing:2px}
+  .stock-card .v{font-size:22px;font-weight:700;margin-top:3px;color:var(--maroon)}
+  .stock-card .v small{font-size:11px;font-weight:400;color:var(--ink2)}
+  .sparkline{width:100%;height:64px;margin-top:6px}
+  .table-wrap{max-height:340px;overflow-y:auto}
+  .del-row{background:none;color:#b48f86;font-size:14px;padding:2px 6px;border-radius:4px}
+  .del-row:hover{color:var(--red);background:var(--red-bg)}
+
+  /* 折线图 */
+  .chart-tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .series-toggle{display:flex;gap:8px;flex-wrap:wrap}
+  .stoggle{
+    display:inline-flex;align-items:center;gap:5px;font-size:12px;
+    padding:4px 11px;border-radius:14px;border:1px solid var(--line);background:#fdfaf1;color:var(--ink2);
+  }
+  .stoggle.off{opacity:.4}
+  .stoggle .sd{width:14px;height:3px;border-radius:2px;display:inline-block}
+  .chart-box{position:relative;width:100%;margin-top:8px}
+  #consChart{width:100%;height:340px;display:block;overflow:visible}
+  .chart-tip{
+    position:absolute;pointer-events:none;background:#fffdf6;border:1px solid var(--gold-light);
+    border-radius:8px;padding:8px 11px;font-size:12px;box-shadow:0 6px 18px rgba(80,50,20,.18);
+    opacity:0;transition:opacity .1s;white-space:nowrap;z-index:5;
+  }
+  .chart-tip .tt-date{font-weight:700;color:var(--maroon);margin-bottom:3px;letter-spacing:1px}
+  .chart-tip .tt-row{display:flex;align-items:center;gap:6px}
+  .chart-tip .tt-row .tt-name{flex:1;color:var(--ink2)}
+  .chart-tip .tt-row .tt-val{font-weight:700}
+  .summary-chips{display:flex;gap:18px;flex-wrap:wrap;font-size:13px;color:var(--ink2);margin-bottom:6px}
+  .summary-chips b{color:var(--maroon);font-size:15px}
+
+  /* toast */
+  #toast{
+    position:fixed;left:50%;bottom:34px;transform:translateX(-50%) translateY(20px);
+    background:#4a3522;color:#f8ecd2;padding:10px 22px;border-radius:24px;font-size:13px;
+    border:1px solid var(--gold);box-shadow:0 8px 24px rgba(0,0,0,.3);
+    opacity:0;pointer-events:none;transition:all .25s;z-index:100;letter-spacing:1px;
+  }
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  @media (max-width:1000px){
+    .stats{grid-template-columns:repeat(2,1fr)}
+    .ws-grid{grid-template-columns:1fr}
+    .info-grid{grid-template-columns:1fr}
+  }
+  @media print{
+    header,.panel-head,.overlay,#toast,.btn{display:none!important}
+    body{background:#fff}
+    section.panel{box-shadow:none;break-inside:avoid}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="head-row">
+    <div class="dharmacakra">☸</div>
+    <div>
+      <h1>福 灯 禅 寺 · 供 灯 管 理 面 板</h1>
+      <div class="sub">一灯能除千年暗 · 一智能灭万年愚</div>
+    </div>
+    <div class="head-actions">
+      <span class="today" id="todayText"></span>
+      <button class="btn ghost" onclick="window.print()">🖨 打印布局</button>
+      <button class="btn ghost" onclick="resetData()">↺ 重置数据</button>
+    </div>
+  </div>
+</header>
+
+<div class="stats" id="statBar"></div>
+
+<main>
+  <!-- 供灯架 -->
+  <section class="panel">
+    <div class="panel-head">
+      <h2>殿堂供灯架布局</h2>
+      <div class="tabs" id="hallTabs"></div>
+    </div>
+    <div class="panel-body">
+      <div class="legend" style="margin-bottom:10px">
+        <span><i class="dot g"></i>常亮</span>
+        <span><i class="dot y"></i>即将燃尽（距结束 &lt; 3 天）</span>
+        <span><i class="dot r"></i>已灭（待续费）</span>
+        <span><i class="dot o"></i>空位可恭请</span>
+        <div class="filters" id="typeFilters">
+          <button class="chip active" data-type="all">全部</button>
+          <button class="chip" data-type="su">酥油灯</button>
+          <button class="chip" data-type="lian">莲花灯</button>
+          <button class="chip" data-type="dian">电子灯</button>
+          <button class="chip" data-type="chang">长明灯</button>
+        </div>
+      </div>
+      <div class="rack-meta" id="rackMeta"></div>
+      <div class="rack" id="rack"></div>
+    </div>
+  </section>
+
+  <!-- 酥油灯作坊 -->
+  <section class="panel">
+    <div class="panel-head"><h2>酥油灯作坊 · 灯油领用与制作</h2></div>
+    <div class="panel-body">
+      <div class="ws-grid">
+        <div>
+          <div class="stock-cards" id="stockCards"></div>
+          <form class="form-grid" id="prodForm" onsubmit="submitProduction(event)">
+            <div class="field">
+              <label>日期 <span class="req">*</span></label>
+              <input type="date" name="date" required>
+            </div>
+            <div class="field">
+              <label>作坊师傅</label>
+              <select name="maker">
+                <option>觉明师</option><option>慧灯师</option><option>善济师</option><option>俗家弟子 周福生</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>灯油领用（斤）<span class="req">*</span></label>
+              <input type="number" name="oil" min="0" step="0.1" placeholder="如 12.5" required>
+            </div>
+            <div class="field">
+              <label>制作酥油灯（盏）<span class="req">*</span></label>
+              <input type="number" name="made" min="0" step="1" placeholder="如 80" required>
+            </div>
+            <div class="field full">
+              <label>备注</label>
+              <input type="text" name="note" placeholder="如：佛诞日加制 / 新到一批牦牛酥油">
+              <div class="price-hint">每盏酥油灯约耗灯油 0.15 斤，领用未耗尽部分计入库存。</div>
+            </div>
+            <div class="field full" style="flex-direction:row;justify-content:flex-end">
+              <button type="submit" class="btn">登记当日作坊记录</button>
+            </div>
+          </form>
+        </div>
+        <div>
+          <h4 class="sec">近 14 日作坊台账</h4>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>日期</th><th>师傅</th><th class="num">领油(斤)</th><th class="num">制灯(盏)</th><th></th></tr></thead>
+              <tbody id="prodRows"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 消耗统计 -->
+  <section class="panel">
+    <div class="panel-head">
+      <h2>每日各殿堂供灯消耗统计</h2>
+      <div class="chart-tools" style="margin-left:auto">
+        <div class="series-toggle" id="seriesToggle"></div>
+      </div>
+    </div>
+    <div class="panel-body">
+      <div class="summary-chips" id="summaryChips"></div>
+      <div class="chart-box">
+        <svg id="consChart" preserveAspectRatio="none"></svg>
+        <div class="chart-tip" id="chartTip"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- 灯位弹窗 -->
+<div class="overlay" id="lampOverlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-head">
+      <span id="modalIcon" style="font-size:20px">🪔</span>
+      <h3 id="modalTitle">灯位信息</h3>
+      <button class="x" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-foot" id="modalFoot"></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+"use strict";
+/* ============================================================
+ *  供灯管理面板 —— 纯前端单文件应用
+ *  数据持久化：localStorage（首次进入生成种子数据）
+ * ============================================================ */
+
+/* ---------- 常量 ---------- */
+const STORE_KEY = "fudeng-panel-v1";
+const TODAY = new Date(); TODAY.setHours(0,0,0,0);
+const MS_DAY = 86400000;
+
+const LAMP_TYPES = {
+  su:    {name:"酥油灯", cls:"su",  rate:3, unit:"元/日"},
+  lian:  {name:"莲花灯", cls:"lian",rate:5, unit:"元/日"},
+  dian:  {name:"电子灯", cls:"dian",rate:1, unit:"元/日"},
+  chang: {name:"长明灯", cls:"chang",rate:980,unit:"元/年（约 2.7 元/日）"}
+};
+const TYPE_KEYS = ["su","lian","dian","chang"];
+const PERIOD_OPTS = [
+  {days:7,  label:"7 天"},
+  {days:30, label:"一月"},
+  {days:90, label:"三月"},
+  {days:180,label:"半年"},
+  {days:365,label:"一年"}
+];
+const OIL_PER_LAMP = 0.15; // 每盏酥油灯耗油量（斤）
+
+const HALLS = [
+  {id:"daxiong", name:"大雄宝殿", cols:8, rows:4, base:[34,46]},
+  {id:"guanyin", name:"观音殿",   cols:7, rows:4, base:[22,32]},
+  {id:"dizang",  name:"地藏殿",   cols:6, rows:3, base:[14,22]},
+  {id:"yaoshi",  name:"药师殿",   cols:6, rows:3, base:[16,24]}
+];
+
+/* ---------- 工具 ---------- */
+const $  = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+function pad(n){return String(n).padStart(2,"0");}
+function fmtDate(d){
+  if(typeof d === "string") d = parseDate(d);
+  return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+}
+function parseDate(s){const [y,m,dd]=s.split("-").map(Number);return new Date(y,m-1,dd);}
+function addDays(d,n){const x=new Date(d);x.setDate(x.getDate()+n);return x;}
+function daysBetween(a,b){return Math.round((parseDate(b)-parseDate(a))/MS_DAY);}
+function money(n){return "￥"+Number(n).toLocaleString("zh-CN",{minimumFractionDigits:0,maximumFractionDigits:2});}
+function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function mulberry32(seed){
+  return function(){
+    seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+    let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+let rng = mulberry32(20260920);
+const ri = (a,b)=>a+Math.floor(rng()*(b-a+1));
+const pick = arr => arr[Math.floor(rng()*arr.length)];
+
+/* ---------- 种子词库 ---------- */
+const SURNAMES = "王李张刘陈杨黄赵吴周徐孙马朱胡郭何林罗高郑梁谢宋唐许韩冯邓曹彭曾肖田董袁潘蔡蒋余杜叶程苏魏吕丁任沈姚卢姜崔钟谭陆汪范金石廖贾夏韦付方白邹孟熊秦邱江尹薛闫段雷侯龙史陶黎贺顾毛郝龚邵万钱严覃武戴莫孔向汤".split("");
+const GIVEN = ["德福","桂兰","金生","玉梅","善缘","福海","慧芳","建国","淑珍","根宝","翠花","文才","金凤","满堂","春喜","秋月","宝山","秀莲","广财","素贞","永祥","美凤","天佑","巧云","立新","淑芬","守义","春梅","海潮","银花","承恩","雅琴","柏年","婉清","炳坤","芷若","延宗","明慧","传灯","觉尘","念安","若水"];
+const TITLES = ["","居士","菩萨","信士","女居士","大德"];
+const BLESSINGS = [
+  "愿以此功德，庄严佛净土；上报四重恩，下济三途苦。",
+  "祈愿身心康泰、阖家平安、诸事顺遂。",
+  "愿灯灯相续、智慧光明，照破无明、福慧双增。",
+  "超度先远宗亲、冤亲债主，同生净土。",
+  "祈愿生意兴隆、财源广进、六时吉祥。",
+  "愿学子学业有成、金榜题名。"
+];
+const MAKERS = ["觉明师","慧灯师","善济师","俗家弟子 周福生"];
+const CLERKS  = ["知客 释演慧","知客 释常福","照客 释妙净"];
+const NOTES_POOL = ["佛诞日加制","新到一批牦牛酥油","例行制作","供万佛法会备灯","修缮期间减制","暑期防潮，少量多制",""];
+
+/* ---------- 状态判定 ---------- */
+function lampStatus(l){
+  if(!l) return "empty";
+  const left = daysBetween(fmtDate(TODAY), l.end);
+  if(left < 0) return "red";
+  if(left < 3) return "yellow";
+  return "green";
+}
+const STATUS_TEXT = {green:"常亮",yellow:"即将燃尽",red:"已灭",empty:"空位"};
+
+/* ============================================================
+ *  种子数据
+ * ============================================================ */
+function randomName(){
+  return pick(SURNAMES) + pick(GIVEN) + (rng()<0.25 ? pick(TITLES) : "");
+}
+function buildSeed(){
+  rng = mulberry32(20260920);
+  const lamps = {};
+  HALLS.forEach(h=>{
+    const total = h.cols*h.rows;
+    const occupied = Math.round(total*(0.72+rng()*0.14));
+    const slots = Array.from({length:total},(_,i)=>i);
+    // 随机选取占用位
+    for(let k=slots.length-1;k>0;k--){const j=Math.floor(rng()*(k+1));[slots[k],slots[j]]=[slots[j],slots[k]];}
+    const occSet = new Set(slots.slice(0,occupied));
+    lamps[h.id] = Array.from({length:total},(_,i)=>{
+      if(!occSet.has(i)) return null;
+      // 状态分布：65% 绿 / 15% 黄 / 20% 红
+      const roll = rng();
+      let start,end;
+      if(roll<0.65){ // 常亮：3~120 天后结束，至少 3 天
+        start = addDays(TODAY,-ri(1,90));
+        end   = addDays(TODAY, ri(3,120));
+      }else if(roll<0.80){ // 即将燃尽：0~2 天
+        start = addDays(TODAY,-ri(20,120));
+        end   = addDays(TODAY, ri(0,2));
+      }else{ // 已灭：1~40 天前结束
+        start = addDays(TODAY,-ri(40,160));
+        end   = addDays(TODAY,-ri(1,40));
+      }
+      // 灯型权重：酥油居多
+      const tr = rng();
+      const type = tr<0.55 ? "su" : tr<0.78 ? "lian" : tr<0.92 ? "dian" : "chang";
+      const renewals = buildRenewals(start,end,type);
+      return {
+        id: h.id+"-"+pad(i+1),
+        type,
+        devotee: randomName(),
+        phone: "1"+pick(["3","5","7","8","9"])+String(ri(100000000,999999999)),
+        blessing: pick(BLESSINGS),
+        start: fmtDate(start),
+        end: fmtDate(end),
+        renewals
+      };
+    });
+  });
+
+  // 近 14 天消耗（当天按已点亮估算，取均值）
+  const consumption = [];
+  for(let back=13;back>=0;back--){
+    const row = {date:fmtDate(addDays(TODAY,-back))};
+    HALLS.forEach(h=>{
+      const [lo,hi]=h.base;
+      const wave = Math.sin((13-back)/3 + HALLS.indexOf(h))*4;
+      row[h.id] = Math.max(2, Math.round(lo+rng()*(hi-lo)+wave));
+    });
+    consumption.push(row);
+  }
+
+  // 近 14 天作坊记录
+  const production = [];
+  for(let back=13;back>=0;back--){
+    const d = addDays(TODAY,-back);
+    if(rng()<0.12) continue; // 偶有停工
+    const made = ri(70,150);
+    const oil = Math.round((made*OIL_PER_LAMP + ri(0,6) + rng()*2)*10)/10;
+    production.push({
+      date:fmtDate(d), maker:pick(MAKERS), oil, made,
+      note: rng()<0.45 ? pick(NOTES_POOL) : ""
+    });
+  }
+  // 初始库存（斤）
+  const initStock = 18;
+  return {lamps,consumption,production,initStock,createdAt:Date.now()};
+}
+function buildRenewals(start,end,type){
+  // 首次供奉 + 若干次续费，期限片段完整覆盖 start~end
+  const list = [];
+  const r = rng();
+  const firstDays = r<0.5 ? 30 : r<0.75 ? 90 : r<0.9 ? 180 : 365;
+  let cursor = new Date(start), idx = 0, days = firstDays;
+  while(cursor < end && list.length<4 && days>0){
+    const remain = Math.round((end-cursor)/MS_DAY);
+    if(remain<=0) break;
+    let isLast = false;
+    // 末段补足剩余天数；中间段在期限选项中取不超过剩余天数者
+    if(remain<=365 && (remain<=90 || list.length===2 || rng()<0.6)){
+      days = remain; isLast = true;
+    }else{
+      const choices = PERIOD_OPTS.filter(p=>p.days<=remain);
+      days = choices.length ? choices[choices.length-1].days : remain;
+    }
+    let date = cursor;
+    if(idx>0){
+      // 续费登记略早于上期届满（0~4 天前），且不晚于今天
+      date = addDays(cursor,-ri(0,4));
+      if(date>TODAY) date = addDays(TODAY,-ri(0,2));
+      if(date<start) date = new Date(start);
+    }
+    list.push({date:fmtDate(date), days, amount:amountOf(type,days), clerk:pick(CLERKS), kind:idx===0?"恭请":"续费"});
+    cursor = addDays(cursor,days);
+    idx++;
+    if(isLast) break;
+  }
+  list.sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:0);
+  return list;
+}
+function amountOf(type,days){
+  if(type==="chang") return Math.round(days/365*980);
+  return LAMP_TYPES[type].rate*days;
+}
+
+/* ---------- 数据存取 ---------- */
+let DB;
+function load(){
+  try{
+    const raw = localStorage.getItem(STORE_KEY);
+    if(raw){ DB = JSON.parse(raw); return; }
+  }catch(e){console.warn(e);}
+  DB = buildSeed();
+  save();
+}
+function save(){localStorage.setItem(STORE_KEY,JSON.stringify(DB));}
+function resetData(){
+  if(!confirm("确定恢复为初始演示数据？当前所有登记与续费将被清除。")) return;
+  DB = buildSeed(); save(); renderAll(); toast("已重置为初始数据");
+}
+
+/* ============================================================
+ *  UI 状态
+ * ============================================================ */
+let currentHall = HALLS[0].id;
+let typeFilter = "all";
+const visibleSeries = new Set(HALLS.map(h=>h.id));
+visibleSeries.add("total");
+
+/* ---------- 顶部统计 ---------- */
+function renderStats(){
+  let g=0,y=0,r=0,occupied=0,total=0;
+  HALLS.forEach(h=>{
+    total += DB.lamps[h.id].length;
+    DB.lamps[h.id].forEach(l=>{
+      if(!l) return;
+      occupied++;
+      const st = lampStatus(l);
+      if(st==="green")g++; else if(st==="yellow")y++; else r++;
+    });
+  });
+  const todayCons = DB.consumption[DB.consumption.length-1];
+  const todayTotal = HALLS.reduce((s,h)=>s+todayCons[h.id],0);
+  const stock = oilStock();
+  $("#statBar").innerHTML = `
+    <div class="stat"><div class="k">在架灯位 / 总数</div><div class="v">${occupied}<small>/ ${total} 盏</small></div></div>
+    <div class="stat green"><div class="k">常亮</div><div class="v">${g}<small>盏</small></div></div>
+    <div class="stat yellow"><div class="k">即将燃尽</div><div class="v">${y}<small>盏（&lt;3天）</small></div></div>
+    <div class="stat red"><div class="k">已灭待续费</div><div class="v">${r}<small>盏</small></div></div>
+    <div class="stat"><div class="k">今日消耗 / 灯油库存</div><div class="v">${todayTotal}<small>盏 · ${stock.toFixed(1)} 斤</small></div></div>`;
+}
+
+/* ---------- 殿堂 tabs ---------- */
+function renderTabs(){
+  $("#hallTabs").innerHTML = HALLS.map(h=>{
+    const lit = DB.lamps[h.id].filter(l=>l && lampStatus(l)!=="red").length;
+    return `<button class="tab ${h.id===currentHall?"active":""}" data-hall="${h.id}">
+      ${h.name}<span class="cnt">${lit}/${h.cols*h.rows}</span></button>`;
+  }).join("");
+  $$("#hallTabs .tab").forEach(t=>t.onclick=()=>{currentHall=t.dataset.hall;renderTabs();renderRack();});
+}
+
+/* ---------- 灯架 ---------- */
+function renderRack(){
+  const h = HALLS.find(x=>x.id===currentHall);
+  const list = DB.lamps[h.id];
+  $("#rackMeta").textContent =
+    `${h.name} · 灯架 ${h.rows} 层 × ${h.cols} 位，共 ${list.length} 个灯位；点击灯位查看供奉人信息与续费记录，点击虚線空位可恭请新灯。`;
+  const rack = $("#rack");
+  rack.style.gridTemplateColumns = `repeat(${h.cols},minmax(108px,1fr))`;
+  rack.innerHTML = list.map((l,i)=>{
+    if(!l) return `<button class="lamp empty" data-pos="${i}" title="第 ${Math.floor(i/h.cols)+1} 层 第 ${i%h.cols+1} 位 · 空位">
+        <span class="plus">＋</span><span class="empty-hint">恭请供灯</span></button>`;
+    const t = LAMP_TYPES[l.type];
+    const st = lampStatus(l);
+    if(typeFilter!=="all" && l.type!==typeFilter)
+      return `<button class="lamp ${st}" data-pos="${i}" style="opacity:.28">${lampInner(l,i,h,st,t)}</button>`;
+    return `<button class="lamp ${st}" data-pos="${i}">${lampInner(l,i,h,st,t)}</button>`;
+  }).join("");
+  $$("#rack .lamp").forEach(el=>el.onclick=()=>openLamp(+el.dataset.pos));
+}
+function lampInner(l,i,h,st,t){
+  const left = daysBetween(fmtDate(TODAY),l.end);
+  const cdTxt = st==="green" ? `余 ${left} 天` : st==="yellow" ? (left>=0?`仅剩 ${left} 天`:"今日届满") : `已灭 ${-left} 天`;
+  const flame = st==="red" ? "🕯" : "🪔";
+  return `
+    <div class="top">
+      <span class="flame">${flame}</span>
+      <span class="badge ${t.cls}">${t.name}</span>
+      <span class="pos">${String(Math.floor(i/h.cols)+1)}-${String(i%h.cols+1).padStart(2,"0")}</span>
+    </div>
+    <div class="devotee" title="${esc(l.devotee)}">${esc(l.devotee)}</div>
+    <div class="dates" title="${l.start} 至 ${l.end}">${l.start.slice(5)} ~ ${l.end.slice(5)}</div>
+    <div class="countdown ${st==="green"?"g":st==="yellow"?"y":"r"}">${cdTxt}</div>`;
+}
+
+/* ============================================================
+ *  灯位弹窗
+ * ============================================================ */
+function openLamp(pos){
+  const h = HALLS.find(x=>x.id===currentHall);
+  const l = DB.lamps[h.id][pos];
+  $("#modalIcon").textContent = l ? "🪔" : "✦";
+  $("#modalTitle").textContent = l
+    ? `${h.name} ${Math.floor(pos/h.cols)+1}-${String(pos%h.cols+1).padStart(2,"0")} 灯位`
+    : `${h.name} 空位 · 恭请供灯`;
+  if(!l){ renderOfferForm(h,pos); return; }
+  const st = lampStatus(l);
+  const t = LAMP_TYPES[l.type];
+  const left = daysBetween(fmtDate(TODAY),l.end);
+  const total = l.renewals.reduce((s,r)=>s+r.amount,0);
+  $("#modalBody").innerHTML = `
+    <div class="blessing">${esc(l.blessing)}</div>
+    <div class="info-grid">
+      <div class="item"><div class="lbl">灯型</div><div class="val"><span class="badge ${t.cls}">${t.name}</span>
+        <span style="font-size:11px;color:var(--ink2);font-weight:400;margin-left:6px">${t.rate} ${t.unit}</span></div></div>
+      <div class="item"><div class="lbl">当前状态</div><div class="val"><span class="status-pill ${st}">${STATUS_TEXT[st]}</span>
+        <span style="font-size:12px;font-weight:400;color:var(--ink2);margin-left:6px">
+        ${st==="green"?`余 ${left} 天`:st==="yellow"?(left>=0?`仅剩 ${left} 天`:"今日届满"):`已熄灭 ${-left} 天`}</span></div></div>
+      <div class="item"><div class="lbl">供奉人</div><div class="val">${esc(l.devotee)}</div></div>
+      <div class="item"><div class="lbl">联系电话</div><div class="val">${esc(l.phone)}</div></div>
+      <div class="item"><div class="lbl">供奉起始</div><div class="val">${l.start}</div></div>
+      <div class="item"><div class="lbl">供奉止期</div><div class="val">${l.end}</div></div>
+      <div class="item" style="grid-column:1/-1"><div class="lbl">累计供养功德金</div><div class="val" style="color:var(--maroon)">${money(total)}（共 ${l.renewals.length} 笔）</div></div>
+    </div>
+    <h4 class="sec">供奉 / 续费记录</h4>
+    <table>
+      <thead><tr><th>日期</th><th>事项</th><th class="num">期限</th><th class="num">功德金</th><th>经办</th></tr></thead>
+      <tbody>${
+        l.renewals.map(r=>`<tr>
+          <td>${r.date}</td>
+          <td>${r.kind==="恭请"?"🏮 恭请新灯":"🔁 续费"}</td>
+          <td class="num">${r.days>=365?(r.days/365)+" 年":r.days+" 天"}</td>
+          <td class="num">${money(r.amount)}</td>
+          <td>${esc(r.clerk)}</td></tr>`).join("")
+      }</tbody>
+    </table>`;
+  $("#modalFoot").innerHTML = `
+    <button class="btn ghost" onclick="openRenew()">🔁 办理续费</button>
+    ${st==="red" ? "" : `<button class="btn danger" onclick="extinguishLamp()">提前熄灯撤位</button>`}`;
+  window._curLamp = {hallId:h.id,pos};
+  showModal();
+}
+function extinguishLamp(){
+  const {hallId,pos} = window._curLamp;
+  if(!confirm("确定提前熄灯并撤去此灯位供奉？")) return;
+  DB.lamps[hallId][pos] = null;
+  save(); closeModal(); renderAll(); toast("已撤位，灯位恢复为空");
+}
+
+/* ---------- 恭请新灯表单 ---------- */
+function renderOfferForm(h,pos){
+  window._curLamp = {hallId:h.id,pos};
+  $("#modalBody").innerHTML = offerFormHTML({
+    action:"offer",
+    devo:"",phone:"",type:"su",start:fmtDate(TODAY),days:30,blessing:pick(BLESSINGS)
+  });
+  $("#modalFoot").innerHTML = `<button class="btn ghost" onclick="closeModal()">取消</button>
+    <button class="btn" onclick="submitOffer()">确认恭请登位</button>`;
+  bindOfferCalc();
+  showModal();
+}
+function openRenew(){
+  const {hallId,pos} = window._curLamp;
+  const l = DB.lamps[hallId][pos];
+  // 已灭则从今天重新起算；未灭则从原止期顺延
+  const st = lampStatus(l);
+  const baseStart = st==="red" ? fmtDate(TODAY) : l.end;
+  const lastDays = l.renewals.length ? l.renewals[l.renewals.length-1].days : 30;
+  const nearestDays = PERIOD_OPTS.reduce((best,p)=>
+    Math.abs(p.days-lastDays)<Math.abs(best-lastDays) ? p.days : best, PERIOD_OPTS[0].days);
+  $("#modalBody").innerHTML = offerFormHTML({
+    action:"renew",
+    devo:l.devotee,phone:l.phone,type:l.type,start:baseStart,days:nearestDays,
+    blessing:l.blessing,
+    st
+  });
+  $("#modalFoot").innerHTML = `<button class="btn ghost" onclick="openLamp(${pos})">返回</button>
+    <button class="btn" onclick="submitOffer()">确认续费登记</button>`;
+  bindOfferCalc();
+}
+function offerFormHTML(v){
+  const isRenew = v.action==="renew";
+  return `
+  ${isRenew ? `<div class="blessing">${v.st==="red"
+      ? "此灯已熄，续费后自今日重新点燃 🔆"
+      : "灯灯相续，明劫长存。续费期限自当前止期顺延。"}</div>` : ""}
+  <form class="form-grid" id="offerForm" onsubmit="event.preventDefault();submitOffer()">
+    <div class="field">
+      <label>供奉人姓名 <span class="req">*</span></label>
+      <input name="devotee" value="${esc(v.devo)}" ${isRenew?"readonly":""} required maxlength="20">
+    </div>
+    <div class="field">
+      <label>联系电话</label>
+      <input name="phone" value="${esc(v.phone)}" ${isRenew?"readonly":""} placeholder="选填" maxlength="13">
+    </div>
+    <div class="field">
+      <label>灯型 <span class="req">*</span></label>
+      <select name="type" ${isRenew?"disabled":""}>
+        ${TYPE_KEYS.map(k=>`<option value="${k}" ${k===v.type?"selected":""}>${LAMP_TYPES[k].name}（${LAMP_TYPES[k].rate} ${LAMP_TYPES[k].unit}）</option>`).join("")}
+      </select>
+    </div>
+    <div class="field">
+      <label>${isRenew?"期限自该日起算":"供奉起始日"}</label>
+      <input type="date" name="start" value="${v.start}" ${isRenew?"readonly":""}>
+    </div>
+    <div class="field">
+      <label>供奉期限 <span class="req">*</span></label>
+      <select name="days">
+        ${PERIOD_OPTS.map(p=>`<option value="${p.days}" ${p.days===v.days?"selected":""}>${p.label}（${p.days} 天）</option>`).join("")}
+      </select>
+    </div>
+    <div class="field">
+      <label>经办师</label>
+      <select name="clerk">${CLERKS.map(c=>`<option>${c}</option>`).join("")}</select>
+    </div>
+    <div class="field full">
+      <label>祈愿语</label>
+      <textarea name="blessing" maxlength="60">${esc(v.blessing)}</textarea>
+    </div>
+    <div class="field full">
+      <div class="price-hint" id="priceHint"></div>
+    </div>
+  </form>`;
+}
+function bindOfferCalc(){
+  const form = $("#offerForm");
+  const calc=()=>{
+    const type = form.type.value, days = +form.days.value;
+    const end = fmtDate(addDays(parseDate(form.start.value),days));
+    $("#priceHint").innerHTML = `止期：<b style="color:var(--maroon)">${end}</b>　·　应收功德金：<b style="color:var(--maroon);font-size:16px">${money(amountOf(type,days))}</b>`;
+  };
+  ["type","days","start"].forEach(n=>form[n].addEventListener("change",calc));
+  form.days.addEventListener("input",calc);
+  calc();
+}
+function submitOffer(){
+  const f = $("#offerForm");
+  const devo = f.devotee.value.trim();
+  if(!devo){toast("请填写供奉人姓名");return;}
+  const {hallId,pos} = window._curLamp;
+  const action = renewOrOffer();
+  const cur = DB.lamps[hallId][pos];
+  const type = cur ? cur.type : f.type.value;
+  const days = +f.days.value;
+  const start = f.start.value;
+  const end = fmtDate(addDays(parseDate(start),days));
+  const rec = {date: start, days, amount:amountOf(type,days), clerk:f.clerk.value,
+               kind: action==="renew" ? "续费":"恭请"};
+  if(action==="renew"){
+    cur.end = end;
+    cur.renewals.push(rec);
+    toast(`续费成功，新止期 ${end}`);
+  }else{
+    DB.lamps[hallId][pos] = {
+      id: hallId+"-"+pad(pos+1),
+      type, devotee:devo, phone:f.phone.value.trim(),
+      blessing:f.blessing.value.trim() || BLESSINGS[1],
+      start, end, renewals:[rec]
+    };
+    toast(`供灯已登位，随喜赞叹 ${money(rec.amount)}`);
+  }
+  save(); closeModal(); renderAll();
+}
+function renewOrOffer(){
+  // 依据当前 body 内表单与数据判断：灯位已有灯则为续费
+  const {hallId,pos} = window._curLamp;
+  return DB.lamps[hallId][pos] ? "renew" : "offer";
+}
+
+function showModal(){$("#lampOverlay").classList.add("show");}
+function closeModal(){$("#lampOverlay").classList.remove("show");}
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeModal();});
+
+/* ============================================================
+ *  酥油灯作坊
+ * ============================================================ */
+function oilStock(){
+  const usedByProduction = DB.production.reduce((s,p)=>s+p.made*OIL_PER_LAMP,0);
+  const received = DB.production.reduce((s,p)=>s+p.oil,0);
+  // 库存 = 初始库存 + 总领用 - 制灯耗油（领用即出库入作坊，未耗尽为作坊结存）
+  return DB.initStock + received - usedByProduction;
+}
+function renderWorkshop(){
+  const made7 = DB.production.slice(-7);
+  const totalOil = DB.production.reduce((s,p)=>s+p.oil,0);
+  const totalMade = DB.production.reduce((s,p)=>s+p.made,0);
+  const maxMade = Math.max(1,...made7.map(p=>p.made));
+  const sparkPts = made7.map((p,i)=>{
+    const x = made7.length===1?25:i/(made7.length-1)*90+5;
+    const y = 46-(p.made/maxMade)*38;
+    return `${x},${y}`;
+  }).join(" ");
+  $("#stockCards").innerHTML = `
+    <div class="stock-card">
+      <div class="k">灯油结存</div><div class="v">${oilStock().toFixed(1)}<small> 斤</small></div>
+      <div class="price-hint">累计领用 ${totalOil.toFixed(1)} 斤</div>
+    </div>
+    <div class="stock-card">
+      <div class="k">近 14 日制灯</div><div class="v">${totalMade}<small> 盏</small></div>
+      <svg class="sparkline" viewBox="0 0 100 52" preserveAspectRatio="none">
+        <polyline points="${sparkPts}" fill="none" stroke="#b8893b" stroke-width="2" vector-effect="non-scaling-stroke"/>
+      </svg>
+    </div>
+    <div class="stock-card">
+      <div class="k">单位耗油量</div><div class="v">${OIL_PER_LAMP}<small> 斤/盏</small></div>
+      <div class="price-hint">14 日制灯耗油 ${(totalMade*OIL_PER_LAMP).toFixed(1)} 斤</div>
+    </div>`;
+  $("#prodRows").innerHTML = DB.production.slice().reverse().map((p,idx)=>{
+    const realIdx = DB.production.length-1-idx;
+    const main = `<tr>
+      <td>${p.date}</td><td>${esc(p.maker)}</td>
+      <td class="num">${p.oil.toFixed(1)}</td><td class="num">${p.made}</td>
+      <td style="text-align:right"><button class="del-row" title="删除该条" onclick="delProduction(${realIdx})">✕</button></td>
+    </tr>`;
+    const note = p.note
+      ? `<tr><td colspan="5" style="color:var(--ink2);font-size:11.5px;padding-top:0">备注：${esc(p.note)}</td></tr>`
+      : "";
+    return main+note;
+  }).join("");
+  $("#prodForm").date.value = fmtDate(TODAY);
+}
+function submitProduction(e){
+  e.preventDefault();
+  const f = e.target;
+  const rec = {
+    date:f.date.value,
+    maker:f.maker.value,
+    oil:Math.round(+f.oil.value*10)/10,
+    made:+f.made.value,
+    note:f.note.value.trim()
+  };
+  if(rec.oil<0||rec.made<0){toast("数量不可为负");return;}
+  // 同日替换（每日一条台账）
+  const exist = DB.production.findIndex(p=>p.date===rec.date);
+  if(exist>=0){
+    if(!confirm(`${rec.date} 已有一条作坊记录，是否覆盖更新？`))return;
+    DB.production[exist]=rec;
+  }else{
+    DB.production.push(rec);
+    DB.production.sort((a,b)=>a.date<b.date?-1:1);
+  }
+  save(); f.note.value=""; f.oil.value=""; f.made.value="";
+  renderAll(); toast("作坊记录已登记");
+}
+function delProduction(i){
+  if(!confirm("删除该日作坊台账记录？"))return;
+  DB.production.splice(i,1);save();renderAll();toast("已删除");
+}
+
+/* ============================================================
+ *  消耗折线图（纯 SVG）
+ * ============================================================ */
+const HALL_COLORS = {daxiong:"#7a2e22",guanyin:"#c0507c",dizang:"#2e7d5b",yaoshi:"#3f6ea6",total:"#6f5d48"};
+function renderChartControls(){
+  const items = [...HALLS.map(h=>({id:h.id,name:h.name})),{id:"total",name:"全寺合计"}];
+  $("#seriesToggle").innerHTML = items.map(it=>`
+    <button class="stoggle ${visibleSeries.has(it.id)?"":"off"}" data-id="${it.id}">
+      <span class="sd" style="background:${HALL_COLORS[it.id]};${it.id==="total"?"height:0;border-top:2px dashed "+HALL_COLORS.total:""}"></span>${it.name}
+    </button>`).join("");
+  $$("#seriesToggle .stoggle").forEach(b=>b.onclick=()=>{
+    const id=b.dataset.id;
+    visibleSeries.has(id)?visibleSeries.delete(id):visibleSeries.add(id);
+    renderChartControls();drawChart();
+  });
+}
+function renderSummary(){
+  const last = DB.consumption[DB.consumption.length-1];
+  const prev = DB.consumption[DB.consumption.length-2] || last;
+  const todayTotal = HALLS.reduce((s,h)=>s+last[h.id],0);
+  const prevTotal = HALLS.reduce((s,h)=>s+prev[h.id],0);
+  const delta = todayTotal-prevTotal;
+  const peak = DB.consumption.reduce((m,r)=>Math.max(m,HALLS.reduce((s,h)=>s+r[h.id],0)),0);
+  $("#summaryChips").innerHTML = `
+    <span>近 14 日全寺消耗合计：<b>${DB.consumption.reduce((s,r)=>s+HALLS.reduce((a,h)=>a+r[h.id],0),0)}</b> 盏</span>
+    <span>日均：<b>${Math.round(DB.consumption.reduce((s,r)=>s+HALLS.reduce((a,h)=>a+r[h.id],0),0)/DB.consumption.length)}</b> 盏</span>
+    <span>单日峰值：<b>${peak}</b> 盏</span>
+    <span>今日：<b>${todayTotal}</b> 盏（${delta>=0?"较昨日 +":"较昨日 "}${delta}）</span>`;
+}
+function drawChart(){
+  const svg = $("#consChart");
+  const W = svg.clientWidth || 900, H = 340;
+  svg.setAttribute("viewBox",`0 0 ${W} ${H}`);
+  const m = {t:18,r:18,b:46,l:42};
+  const iw = W-m.l-m.r, ih = H-m.t-m.b;
+  const data = DB.consumption;
+  data.forEach(r=>{r.total = HALLS.reduce((s,h)=>s+r[h.id],0);});
+  const maxV = Math.max(...data.map(r=>Math.max(
+    ...HALLS.map(h=>visibleSeries.has(h.id)?r[h.id]:0),
+    visibleSeries.has("total")?r.total:0))) *1.15 || 10;
+  const yMax = Math.ceil(maxV/10)*10;
+  const x = i => m.l + (data.length===1?iw/2:i/(data.length-1)*iw);
+  const y = v => m.t+ih-(v/yMax)*ih;
+  let html = "";
+  // 网格 + Y 轴刻度
+  const steps = 5;
+  for(let s=0;s<=steps;s++){
+    const v = Math.round(yMax/steps*s), yy=y(v);
+    html += `<line x1="${m.l}" y1="${yy}" x2="${W-m.r}" y2="${yy}" stroke="#e7ddc6" stroke-width="1"/>`;
+    html += `<text x="${m.l-8}" y="${yy+4}" text-anchor="end" font-size="11" fill="#8a7a60">${v}</text>`;
+  }
+  // X 轴日期（逐日）
+  data.forEach((r,i)=>{
+    html += `<text x="${x(i)}" y="${H-m.b+18}" text-anchor="middle" font-size="10.5" fill="#8a7a60">${r.date.slice(5)}</text>`;
+  });
+  // 序列
+  const series = [
+    ...HALLS.filter(h=>visibleSeries.has(h.id)).map(h=>({id:h.id,name:h.name,color:HALL_COLORS[h.id],dash:false})),
+    ...(visibleSeries.has("total")?[{id:"total",name:"全寺合计",color:HALL_COLORS.total,dash:true}]:[])
+  ];
+  series.forEach(s=>{
+    const pts = data.map((r,i)=>`${x(i)},${y(r[s.id])}`).join(" ");
+    if(s.id==="total"){
+      html += `<polyline points="${pts}" fill="none" stroke="${s.color}" stroke-width="2.2"
+        stroke-dasharray="7 5" vector-effect="non-scaling-stroke"/>`;
+    }else{
+      const area = `${m.l},${m.t+ih} ${pts} ${W-m.r},${m.t+ih}`;
+      html += `<polygon points="${area}" fill="${s.color}" opacity="0.06"/>`;
+      html += `<polyline points="${pts}" fill="none" stroke="${s.color}" stroke-width="2" vector-effect="non-scaling-stroke"/>`;
+      data.forEach((r,i)=>{
+        html += `<circle cx="${x(i)}" cy="${y(r[s.id])}" r="3.2" fill="#fbf7ec" stroke="${s.color}" stroke-width="1.6"/>`;
+      });
+    }
+  });
+  // 悬停层（透明矩形 + 竖线）
+  html += `<line id="hoverLine" x1="0" y1="${m.t}" x2="0" y2="${m.t+ih}" stroke="#b8893b" stroke-width="1" stroke-dasharray="3 3" opacity="0"/>`;
+  data.forEach((r,i)=>{
+    const step = iw/Math.max(1,data.length-1);
+    const xx = x(i)-step/2;
+    html += `<rect x="${xx}" y="${m.t}" width="${step}" height="${ih}" fill="transparent" data-i="${i}" class="hover-rect"/>`;
+  });
+  svg.innerHTML = html;
+
+  const tip = $("#chartTip"), line=$("#hoverLine");
+  $$(".hover-rect").forEach(rect=>{
+    rect.addEventListener("mousemove",ev=>{
+      const i = +rect.dataset.i, r=data[i];
+      line.setAttribute("x1",x(i));line.setAttribute("x2",x(i));line.setAttribute("opacity",.8);
+      tip.innerHTML = `<div class="tt-date">${r.date}</div>` +
+        series.map(s=>`<div class="tt-row"><span class="sd" style="background:${s.color};width:12px;height:3px;display:inline-block;${s.dash?"border-top:2px dashed "+s.color+";background:none;height:1px":""}"></span>
+          <span class="tt-name">${s.name}</span><span class="tt-val" style="color:${s.color}">${r[s.id]} 盏</span></div>`).join("");
+      tip.style.opacity=1;
+      const box = svg.getBoundingClientRect();
+      let tx = ev.clientX-box.left+14;
+      if(tx+tip.offsetWidth>box.width) tx = ev.clientX-box.left-tip.offsetWidth-14;
+      tip.style.left=tx+"px";
+      tip.style.top=(ev.clientY-box.top-10)+"px";
+    });
+    rect.addEventListener("mouseleave",()=>{tip.style.opacity=0;line.setAttribute("opacity",0);});
+  });
+}
+
+/* ============================================================
+ *  类型筛选 & 总渲染
+ * ============================================================ */
+$$("#typeFilters .chip").forEach(c=>c.onclick=()=>{
+  $$("#typeFilters .chip").forEach(x=>x.classList.remove("active"));
+  c.classList.add("active");
+  typeFilter=c.dataset.type;
+  renderRack();
+});
+function renderAll(){
+  renderStats();renderTabs();renderRack();renderWorkshop();renderSummary();drawChart();
+}
+let resizeTimer;
+window.addEventListener("resize",()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(drawChart,150);});
+
+/* ---------- 启动 ---------- */
+function boot(){
+  $("#todayText").textContent =
+    `📅 ${fmtDate(TODAY)}　${["星期日","星期一","星期二","星期三","星期四","星期五","星期六"][TODAY.getDay()]}`;
+  load();
+  renderAll();
+}
+function toast(msg){
+  const t=$("#toast");t.textContent=msg;t.classList.add("show");
+  clearTimeout(t._timer);t._timer=setTimeout(()=>t.classList.remove("show"),2200);
+}
+boot();
+</script>
+</body>
+</html>
